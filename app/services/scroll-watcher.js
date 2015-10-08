@@ -1,0 +1,1 @@
+export { default } from 'ember-sticky-item/services/scroll-watcher';

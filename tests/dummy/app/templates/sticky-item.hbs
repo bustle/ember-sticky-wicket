@@ -1,0 +1,9 @@
+<div style="height:500px;overflow:scroll;position:relative" id="viewport">
+  <div style="height:500px;background:red;"></div>
+  <div style="height:500px;background:blue" id="container">
+    {{#sticky-item wrapper='#container' viewport='#viewport'}}
+      <div style="height:100px;background:cyan;"></div>
+    {{/sticky-item}}
+  </div>
+  <div style="height:500px;background:green;"></div>
+</div>
