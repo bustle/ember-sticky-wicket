@@ -1,7 +1,7 @@
 import { moduleFor, test } from 'ember-qunit';
 import Ember from 'ember';
 
-let { run, $ } = Ember;
+let { run } = Ember;
 
 let watcher, service;
 

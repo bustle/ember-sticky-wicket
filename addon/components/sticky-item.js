@@ -11,29 +11,50 @@ export default Ember.Component.extend({
     return $(this.get('wrapper'));
   }),
   viewportElement: computed('viewport', function() {
-    return $(this.get('viewport'));
+    let viewport = this.get('viewport');
+    return viewport && $(viewport);
+  }),
+  viewportTop: computed('viewportElement', function() {
+    let element = this.get('viewportElement');
+    let top = 0;
+    if (element) {
+      top = element.offset().top;
+    }
+    return top;
   }),
 
-  didInsertElement() {
-    let viewportElement = this.get('viewportElement');
+  _startViewportWatcher() {
     let scrollWatcher = this.get('scrollWatcher');
-    let watcher = scrollWatcher.startWatcher(viewportElement);
+    let element = this.get('viewportElement');
+    let watcher;
+    if (element) {
+      watcher = scrollWatcher.startWatcher(element);
+    } else {
+      watcher = scrollWatcher.startWatcher(window);
+    }
+    this.set('viewportWatcher', watcher);
+  },
+  _stopViewportWatcher() {
+    let viewportWatcher  = this.get('viewportWatcher');
+    let scrollWatcher = this.get('scrollWatcher');
+    scrollWatcher.stopWatcher(viewportWatcher);
+    this.set('viewportWatcher', null);
+  },
 
+  didInsertElement() {
+    this._super(...arguments);
+    this._startViewportWatcher();
     let element = this.$();
     let wrapperElement = this.get('wrapperElement');
-    let viewportTop = viewportElement.offset().top;
+    let viewportTop = this.get('viewportTop');
     let initialTop = element.offset().top - viewportTop;
     let initialBottom = wrapperElement.offset().top + wrapperElement[0].offsetHeight - viewportTop;
     this.set('initialTop', initialTop);
     this.set('initialBottom', initialBottom);
-
-    this.set('viewportWatcher', watcher);
   },
   willDestroyElement() {
-    let viewportElement = this.get('viewportElement');
-    let scrollWatcher = this.get('scrollWatcher');
-    scrollWatcher.stopWatcher(viewportElement);
-    this.set('viewportWatcher', null);
+    this._super(...arguments);
+    this._stopViewportWatcher();
   },
 
   isFixed: Ember.observer('viewportWatcher.scrollTop', function() {

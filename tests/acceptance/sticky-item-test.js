@@ -1,10 +1,6 @@
 import Ember from 'ember';
 import { module, test } from 'qunit';
 import startApp from '../../tests/helpers/start-app';
-import config from '../../config/environment';
-
-let { $ } = Ember;
-let rootElementSelector = config.APP.rootElement;
 
 module('Acceptance | sticky item', {
   beforeEach: function() {
