@@ -5,15 +5,20 @@ let { computed, $, inject } = Ember;
 
 export default Ember.Component.extend({
   layout,
+
   scrollWatcher: inject.service(),
+
   classNameBindings: ['isFixed:__ember-sticky-wrapper--sticky-item'],
+
   wrapperElement: computed('wrapper', function() {
     return $(this.get('wrapper'));
   }),
+
   viewportElement: computed('viewport', function() {
     let viewport = this.get('viewport');
     return viewport && $(viewport);
   }),
+
   viewportTop: computed('viewportElement', function() {
     let element = this.get('viewportElement');
     let top = 0;
@@ -34,6 +39,7 @@ export default Ember.Component.extend({
     }
     this.set('viewportWatcher', watcher);
   },
+
   _stopViewportWatcher() {
     let viewportWatcher  = this.get('viewportWatcher');
     let scrollWatcher = this.get('scrollWatcher');
@@ -52,6 +58,7 @@ export default Ember.Component.extend({
     this.set('initialTop', initialTop);
     this.set('initialBottom', initialBottom);
   },
+
   willDestroyElement() {
     this._super(...arguments);
     this._stopViewportWatcher();
@@ -83,7 +90,7 @@ export default Ember.Component.extend({
         top: 'auto'
       });
     }
-
+  })
 
     /*
 
@@ -110,5 +117,4 @@ export default Ember.Component.extend({
       });
     }
    */
-  })
 });

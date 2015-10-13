@@ -1,6 +1,14 @@
 import Ember from 'ember';
 import { module, test } from 'qunit';
 import startApp from '../../tests/helpers/start-app';
+import config from '../../config/environment';
+
+let { elementHeights: {
+  aboveWrapper: aboveWrapperHeight,
+  wrapper: wrapperHeight,
+  aboveStickyItem: aboveStickyItemHeight,
+  stickyItem: stickyItemHeight
+} } = config;
 
 module('Acceptance | sticky item', {
   beforeEach: function() {
@@ -12,6 +20,11 @@ module('Acceptance | sticky item', {
   }
 });
 
+function scrollTo(element, scrollTop) {
+  $(element).scrollTop(scrollTop);
+  $(element).trigger('scroll');
+}
+
 test('visiting /sticky-item', function(assert) {
   visit('/sticky-item');
 
@@ -20,31 +33,60 @@ test('visiting /sticky-item', function(assert) {
     let item = $('.__ember-sticky-wrapper--sticky-item');
 
     let itemTop = item.offset().top - viewport.offset().top;
-    assert.equal(itemTop, 500, 'initial offset of item is normal');
+    assert.equal(itemTop, aboveWrapperHeight + aboveStickyItemHeight,
+                 'initial offset of item is normal');
 
-    viewport.scrollTop(100);
-
-    itemTop = item.offset().top - viewport.offset().top;
-    assert.equal(itemTop, 400, 'adjusted offset of item is normal');
-
-    viewport.scrollTop(200);
+    scrollTo(viewport, aboveWrapperHeight - 10);
 
     itemTop = item.offset().top - viewport.offset().top;
-    assert.equal(itemTop, 300, 'adjusted offset of item is normal');
+    assert.equal(itemTop, aboveStickyItemHeight + 10,
+                 'adjusted offset of item is normal');
 
-    viewport.scrollTop(500);
+    scrollTo(viewport, aboveWrapperHeight);
+
+    itemTop = item.offset().top - viewport.offset().top;
+    assert.equal(itemTop, aboveStickyItemHeight,
+                 'adjusted offset of item is normal');
+
+    scrollTo(viewport, aboveWrapperHeight + aboveStickyItemHeight - 10);
+
+    itemTop = item.offset().top - viewport.offset().top;
+    assert.equal(itemTop, 10,
+                 'adjusted offset of item is normal');
+
+    scrollTo(viewport,
+             aboveWrapperHeight + aboveStickyItemHeight + 0.5 * stickyItemHeight);
 
     itemTop = item.offset().top - viewport.offset().top;
     assert.equal(itemTop, 0, 'adjusted offset is at top of viewport');
 
-    viewport.scrollTop(600);
+    scrollTo(viewport,
+             aboveWrapperHeight + wrapperHeight - stickyItemHeight - 10);
 
     itemTop = item.offset().top - viewport.offset().top;
-    assert.ok(itemTop < 1000, 'adjusted offset is above scrollTop');
+    assert.equal(itemTop, 0, 'adjusted offset stays at top of viewport');
 
-    viewport.scrollTop(1000);
+    scrollTo(viewport,
+             aboveWrapperHeight + wrapperHeight - stickyItemHeight);
 
     itemTop = item.offset().top - viewport.offset().top;
-    assert.ok(itemTop < 1000, 'adjusted offset is above scrollTop');
+    assert.equal(itemTop, 0, 'adjusted offset at top of viewport');
+
+    scrollTo(viewport,
+             aboveWrapperHeight + wrapperHeight - stickyItemHeight + 10);
+
+    itemTop = item.offset().top - viewport.offset().top;
+    assert.equal(itemTop, -10, 'adjusted offset moves partially out of sight');
+
+    scrollTo(viewport, aboveWrapperHeight + wrapperHeight);
+
+    itemTop = item.offset().top - viewport.offset().top;
+    assert.ok(itemTop < -stickyItemHeight, 'adjusted offset fully out of sight');
+
+    scrollTo(viewport,
+             aboveWrapperHeight + wrapperHeight + 100);
+
+    itemTop = item.offset().top - viewport.offset().top;
+    assert.ok(itemTop < -stickyItemHeight, 'adjusted offset stays out of sight');
   });
 });
