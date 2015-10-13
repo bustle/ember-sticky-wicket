@@ -1,4 +1,4 @@
-# Ember-sticky-item
+# Ember-sticky-wicket
 
 This README outlines the details of collaborating on this Ember addon.
 
