@@ -1,7 +1,7 @@
 import { moduleFor, test } from 'ember-qunit';
 import Ember from 'ember';
 
-let { run, $ } = Ember;
+let { run } = Ember;
 
 let watcher, service;
 
@@ -35,13 +35,12 @@ test('it can create scroll watcher with element', function(assert) {
   assert.ok(watcher, 'creates a watcher');
 });
 
-test('it can creates a singleton scroll watcher for an element', function(assert) {
+test('it can create a singleton scroll watcher for an element', function(assert) {
   service = this.subject();
   watcher = service.startWatcher(SCROLL_SELECTOR);
   let anotherWatcher = service.startWatcher(`div${SCROLL_SELECTOR}`);
   assert.equal(watcher, anotherWatcher,
                'watcher for an element is a singleton');
-  run(anotherWatcher, 'destroy');
 });
 
 test('it can update properties on scroll event', function(assert) {

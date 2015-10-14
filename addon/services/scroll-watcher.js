@@ -15,7 +15,8 @@ function elementFromSelector(selector) {
 const SCROLL_EVENT = 'scroll.scroll-watcher';
 
 const Watcher = EObject.extend({
-  scrollTop: null
+  scrollTop: null,
+  count: 0
 });
 
 export default Ember.Service.extend({
@@ -25,36 +26,37 @@ export default Ember.Service.extend({
   },
   startWatcher(selector) {
     let element = elementFromSelector(selector);
-    let tuple = this._watchers.get(element) || [];
-    let [watcher, count] = tuple;
+    let watcher = this._watchers.get(element);
     if (!watcher) {
       watcher = this._buildWatcher(element);
-      count = 1;
-      this._watchers.set(element, [watcher, count]);
+      this._watchers.set(element, watcher);
     } else {
-      count++;
-      tuple[1] = count;
+      watcher.incrementProperty('count');
     }
     return watcher;
   },
   stopWatcher(selector) {
     let element = elementFromSelector(selector);
-    let tuple = this._watchers.get(element);
-    if (tuple) {
-      let [watcher, count] = tuple;
-      count--;
+    let watcher = this._watchers.get(element);
+    if (watcher) {
+      let count = watcher.decrementProperty('count');
       if (count === 0) {
         this._teardownWatcher(element, watcher);
-      } else {
-        tuple[1] = count;
       }
     }
   },
   _buildWatcher(element) {
-    let watcher = Watcher.create({});
+    let watcher = Watcher.create({
+      count: 1
+    });
     $(element).on(SCROLL_EVENT, (event) => {
       run(() => {
-        watcher.set('scrollTop', event.target.scrollTop);
+        let element = event.target;
+        if (element === window.document) {
+          element = window;
+        }
+        let scrollTop = $(element).scrollTop();
+        watcher.set('scrollTop', scrollTop);
       });
     });
     return watcher;
