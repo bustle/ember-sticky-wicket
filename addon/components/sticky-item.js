@@ -10,10 +10,16 @@ export default Ember.Component.extend({
 
   classNameBindings: ['isFixed:__ember-sticky-wrapper--sticky-item'],
 
+  // when true, will insert a placeholder div before this component to
+  // ensure that the flow does not change when the sticky item is absolutely
+  // position.
+  addPlaceholder: false,
+
   wrapperElement: computed('wrapper', function() {
     return $(this.get('wrapper'));
   }),
 
+  // when there is no 'viewport' property, the window is used as the viewport
   viewportElement: computed('viewport', function() {
     let viewport = this.get('viewport');
     return viewport && $(viewport);
@@ -62,6 +68,7 @@ export default Ember.Component.extend({
   willDestroyElement() {
     this._super(...arguments);
     this._stopViewportWatcher();
+    this.removePlaceholder();
   },
 
   isFixed: Ember.observer('viewportWatcher.scrollTop', function() {
@@ -77,44 +84,43 @@ export default Ember.Component.extend({
     if (scrollTop >= initialTop && scrollTop < initialBottom) {
       let element = this.$();
       let height = element[0].offsetHeight;
-      scrollTop = Math.min(scrollTop, initialBottom - height);
+      let elementTop = initialBottom-height;
+      scrollTop = Math.min(scrollTop, elementTop);
       this.$().css({
         width: '100%',
         position: 'absolute',
         top: scrollTop
       });
+      this.updatePlaceholder();
     } else {
       this.$().css({
         width: 'auto',
         position: 'initial',
         top: 'auto'
       });
+      this.removePlaceholder();
     }
-  })
+  }),
 
-    /*
-
-    if (top  <= viewportTop) {
-
-      let scrollTop = this.get('viewportWatcher.scrollTop');
-
-      let lastViableTop = wrapperBottom + scrollTop - elementHeight;
-      if (lastViableTop < scrollTop) {
-        scrollTop = lastViableTop;
-      }
-      console.log('scrollTop', scrollTop);
-
-      this.$().css({
-        width: '100%',
-        position: 'absolute',
-        top: scrollTop
-      });
-    } else {
-      this.$().css({
-        width: 'auto',
-        position: 'initial',
-        top: 'auto'
-      });
+  updatePlaceholder() {
+    if (!this.get('addPlaceholder')) {
+      return;
     }
-   */
+    if (this._placeholder) {
+      return;
+    }
+    this._placeholder = `__ember-sticky-wicket__placeholder-${Ember.uuid()}`;
+    let height = this.$().height();
+    let placeholderDiv = `<div id="${this._placeholder}" style="height:${height}px;"></div>`;
+    this.$().before(placeholderDiv);
+  },
+
+  removePlaceholder() {
+    if (!this._placeholder) {
+      return;
+    }
+
+    Ember.$(`#${this._placeholder}`).remove();
+    this._placeholder = false;
+  }
 });
