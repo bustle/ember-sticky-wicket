@@ -77,44 +77,45 @@ export default Ember.Component.extend({
     if (scrollTop >= initialTop && scrollTop < initialBottom) {
       let element = this.$();
       let height = element[0].offsetHeight;
-      scrollTop = Math.min(scrollTop, initialBottom - height);
+      let elementTop = initialBottom-height;
+      let newTop = Math.min(scrollTop, elementTop);
       this.$().css({
         width: '100%',
         position: 'absolute',
-        top: scrollTop
+        top: newTop
       });
-    } else {
-      this.$().css({
-        width: 'auto',
-        position: 'initial',
-        top: 'auto'
-      });
-    }
-  })
-
-    /*
-
-    if (top  <= viewportTop) {
-
-      let scrollTop = this.get('viewportWatcher.scrollTop');
-
-      let lastViableTop = wrapperBottom + scrollTop - elementHeight;
-      if (lastViableTop < scrollTop) {
-        scrollTop = lastViableTop;
+      if (elementTop < scrollTop) {
+        let percentage = (scrollTop - elementTop) / height;
+        let deg = percentage * 90;
+        this.$().css({
+          transform: `rotateX(${deg}deg)`,
+          'transform-origin': 'bottom'
+        });
       }
-      console.log('scrollTop', scrollTop);
-
-      this.$().css({
-        width: '100%',
-        position: 'absolute',
-        top: scrollTop
-      });
+      this.updatePlaceholder();
     } else {
       this.$().css({
         width: 'auto',
         position: 'initial',
         top: 'auto'
       });
+      this.removePlaceholder();
     }
-   */
+  }),
+
+  updatePlaceholder() {
+    if (this._placeholder) {
+      return;
+    }
+    this._placeholder = Ember.guidFor(this);
+    let height = this.$().height();
+    this.$().before(`<div id="${this._placeholder}" style="height:${height}px;"></div>`);
+  },
+
+  removePlaceholder() {
+    if (this._placeholder) {
+      Ember.$(`#${this._placeholder}`).remove();
+      this._placeholder = false;
+    }
+  }
 });

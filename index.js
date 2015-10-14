@@ -2,5 +2,6 @@
 'use strict';
 
 module.exports = {
-  name: 'ember-sticky-item'
+  name: 'ember-sticky-item',
+  isDevelopingAddon: function() { return true; }
 };
