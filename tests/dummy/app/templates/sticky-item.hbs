@@ -5,7 +5,9 @@
       Here is some text above the sticky item.
     </p>
     {{#sticky-item wrapper='#container' viewport='#viewport'}}
-    <div style="height:{{stickyItemHeight}}px;background:cyan;"></div>
+    <div style="height:{{stickyItemHeight}}px;background:cyan;">
+      <h2 id='the-h2' style='margin:0; padding: 0; font-size:100px;'>sticky</h2>
+    </div>
     {{/sticky-item}}
     <p id="below-sticky-item" style='margin:0; height: {{belowStickyItemHeight}}px; color: white;'>
       Here is some text below the sticky item.
