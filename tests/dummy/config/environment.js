@@ -16,6 +16,15 @@ module.exports = function(environment) {
     APP: {
       // Here you can pass flags/options to your application instance
       // when it is created
+    },
+
+    elementHeights: {
+      viewport: 500,
+      aboveWrapper: 500,
+      wrapper: 500,
+      aboveStickyItem: 100,
+      stickyItem: 100,
+      belowStickyItem: 100
     }
   };
 

@@ -7,6 +7,7 @@ var Router = Ember.Router.extend({
 
 Router.map(function() {
   this.route('sticky-item');
+  this.route('window-sticky-item');
 });
 
 export default Router;

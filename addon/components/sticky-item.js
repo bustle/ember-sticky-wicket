@@ -5,35 +5,70 @@ let { computed, $, inject } = Ember;
 
 export default Ember.Component.extend({
   layout,
+
   scrollWatcher: inject.service(),
+
   classNameBindings: ['isFixed:__ember-sticky-wrapper--sticky-item'],
+
+  // when true, will insert a placeholder div before this component to
+  // ensure that the flow does not change when the sticky item is absolutely
+  // position.
+  addPlaceholder: false,
+
   wrapperElement: computed('wrapper', function() {
     return $(this.get('wrapper'));
   }),
+
+  // when there is no 'viewport' property, the window is used as the viewport
   viewportElement: computed('viewport', function() {
-    return $(this.get('viewport'));
+    let viewport = this.get('viewport');
+    return viewport && $(viewport);
   }),
 
-  didInsertElement() {
-    let viewportElement = this.get('viewportElement');
-    let scrollWatcher = this.get('scrollWatcher');
-    let watcher = scrollWatcher.startWatcher(viewportElement);
+  viewportTop: computed('viewportElement', function() {
+    let element = this.get('viewportElement');
+    let top = 0;
+    if (element) {
+      top = element.offset().top;
+    }
+    return top;
+  }),
 
+  _startViewportWatcher() {
+    let scrollWatcher = this.get('scrollWatcher');
+    let element = this.get('viewportElement');
+    let watcher;
+    if (element) {
+      watcher = scrollWatcher.startWatcher(element);
+    } else {
+      watcher = scrollWatcher.startWatcher(window);
+    }
+    this.set('viewportWatcher', watcher);
+  },
+
+  _stopViewportWatcher() {
+    let viewportWatcher  = this.get('viewportWatcher');
+    let scrollWatcher = this.get('scrollWatcher');
+    scrollWatcher.stopWatcher(viewportWatcher);
+    this.set('viewportWatcher', null);
+  },
+
+  didInsertElement() {
+    this._super(...arguments);
+    this._startViewportWatcher();
     let element = this.$();
     let wrapperElement = this.get('wrapperElement');
-    let viewportTop = viewportElement.offset().top;
+    let viewportTop = this.get('viewportTop');
     let initialTop = element.offset().top - viewportTop;
     let initialBottom = wrapperElement.offset().top + wrapperElement[0].offsetHeight - viewportTop;
     this.set('initialTop', initialTop);
     this.set('initialBottom', initialBottom);
-
-    this.set('viewportWatcher', watcher);
   },
+
   willDestroyElement() {
-    let viewportElement = this.get('viewportElement');
-    let scrollWatcher = this.get('scrollWatcher');
-    scrollWatcher.stopWatcher(viewportElement);
-    this.set('viewportWatcher', null);
+    this._super(...arguments);
+    this._stopViewportWatcher();
+    this.removePlaceholder();
   },
 
   isFixed: Ember.observer('viewportWatcher.scrollTop', function() {
@@ -49,45 +84,43 @@ export default Ember.Component.extend({
     if (scrollTop >= initialTop && scrollTop < initialBottom) {
       let element = this.$();
       let height = element[0].offsetHeight;
-      scrollTop = Math.min(scrollTop, initialBottom - height);
+      let elementTop = initialBottom-height;
+      scrollTop = Math.min(scrollTop, elementTop);
       this.$().css({
         width: '100%',
         position: 'absolute',
         top: scrollTop
       });
+      this.updatePlaceholder();
     } else {
       this.$().css({
         width: 'auto',
         position: 'initial',
         top: 'auto'
       });
+      this.removePlaceholder();
+    }
+  }),
+
+  updatePlaceholder() {
+    if (!this.get('addPlaceholder')) {
+      return;
+    }
+    if (this._placeholder) {
+      return;
+    }
+    this._placeholder = `__ember-sticky-wicket__placeholder-${Ember.uuid()}`;
+    let height = this.$().height();
+    let placeholderDiv = `<div id="${this._placeholder}" style="height:${height}px;"></div>`;
+    this.$().before(placeholderDiv);
+  },
+
+  removePlaceholder() {
+    if (!this._placeholder) {
+      return;
     }
 
-
-    /*
-
-    if (top  <= viewportTop) {
-
-      let scrollTop = this.get('viewportWatcher.scrollTop');
-
-      let lastViableTop = wrapperBottom + scrollTop - elementHeight;
-      if (lastViableTop < scrollTop) {
-        scrollTop = lastViableTop;
-      }
-      console.log('scrollTop', scrollTop);
-
-      this.$().css({
-        width: '100%',
-        position: 'absolute',
-        top: scrollTop
-      });
-    } else {
-      this.$().css({
-        width: 'auto',
-        position: 'initial',
-        top: 'auto'
-      });
-    }
-   */
-  })
+    Ember.$(`#${this._placeholder}`).remove();
+    this._placeholder = false;
+  }
 });
