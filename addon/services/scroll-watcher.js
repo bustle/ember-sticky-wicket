@@ -22,7 +22,7 @@ const Watcher = EObject.extend({
 export default Ember.Service.extend({
   init() {
     this._super(...arguments);
-    this._watchers = new Map();
+    this._watchers = new Ember.Map();
   },
   startWatcher(selector) {
     let element = elementFromSelector(selector);
